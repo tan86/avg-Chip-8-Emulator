@@ -69,6 +69,7 @@ void Chip8::emulate_cycle() {
           LOG("CLS");
           Display.fill(0);
           PC += 2;
+          drawFlag = true;
           break;
         case 0x00EE:
           // RET: Return from a subroutine
@@ -80,8 +81,60 @@ void Chip8::emulate_cycle() {
           break;
       }
       break;
+    case 0x1000:
+      // JP addr: Jump to location nnn
+      LOG("JP " << NNN);
+      PC = NNN;
+      break;
+    case 0x6000:
+      // LD Vx, byte: Set Vx = nn
+      LOG("LD V" << X << ", " << NN);
+      V[X] = NN;
+      PC += 2;
+      break;
+    case 0xA000:
+      // LD I, addr: Set I = nnn
+      LOG("LD I, " << NNN);
+      I = NNN;
+      PC += 2;
+      break;
+    case 0xD000:
+      /* DRW x, y, nibble: Display n-byte sprite starting at memory location I
+         at(Vx, Vy), Set VF = collision*/
+      LOG("DRW " << X << ", " << Y << ", " << N);
+      {
+        uint8_t xPos = V[X] % 64;
+        uint8_t yPos = V[Y] % 32;
+
+        // Collision Flag = 0
+        V[0xF] = 0;
+        for (uint8_t row = 0; row < N; ++row) {
+          uint8_t spriteByte = Memory[I + row];
+
+          for (uint8_t col = 0; col < 8; ++col) {
+            uint8_t spritePixel = (spriteByte >> col) & 0x1;
+
+            uint8_t* pixel = &Display[((yPos + row) * 64) + (xPos + col)];
+
+            if (spritePixel == 1 && *pixel == 1) {
+              V[0xF] = 1;
+            }
+
+            *pixel ^= spritePixel;
+            if (*pixel == 1) {
+              *pixel = 0xFF;
+            } else {
+              *pixel = 0x00;
+            }
+          }
+        }
+      }
+      drawFlag = true;
+      PC += 2;
+      break;
     default:
       UNKNOWN_INS;
       break;
   }
+  // LOG("PC: " << PC);
 }

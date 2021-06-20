@@ -35,17 +35,25 @@ int main(int argc, char* argv[]) {
   // Chip8
   c8.init_or_reset();
   c8.load_rom(argv[1]);
-  c8.emulate_cycle();  // keep calling till end of file.
-  // c8.dump();
+  // uint8_t* pdsp = &c8.Display[0];
 
   while (isRunning) {
     while (SDL_PollEvent(&event) != 0) {
       if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
-          isRunning = false;
+        switch (event.key.keysym.sym) {
+          case SDLK_ESCAPE:
+            isRunning = false;
+            break;
+          case SDLK_SPACE:
+            c8.emulate_cycle();
+            break;
         }
       }
-      // SDL_UpdateTexture(pscrTxr, nullptr, (void*), 64 * sizeof(uint8_t));
+    }
+    // c8.emulate_cycle();  // keep calling till end of file.
+    if (c8.drawFlag) {
+      SDL_UpdateTexture(pscrTxr, nullptr, (void*)&c8.Display,
+                        64 * sizeof(uint8_t));
       SDL_RenderClear(pren);
       SDL_RenderCopy(pren, pscrTxr, nullptr, nullptr);
       SDL_RenderPresent(pren);
