@@ -157,10 +157,6 @@ int main(int argc, char* argv[]) {
           }
           break;
       }
-      std::cout << "Keys: ";
-      for (const auto k : c8.Key) {
-        std::cout << k << "\t";
-      }
     }
 
     c8.emulate_cycle();  // keep calling till end of file.
