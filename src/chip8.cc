@@ -208,7 +208,7 @@ void Chip8::emulate_cycle() {
           uint8_t spriteByte = Memory[I + row];
 
           for (uint8_t col = 0; col < 8; ++col) {
-            uint8_t spritePixel = spriteByte & (1 << (7 - col));
+            uint8_t spritePixel = (spriteByte >> (7 - col)) & 0x1;
 
             uint8_t* pixel = &Display[((yPos + row) * 64) + (xPos + col)];
 
@@ -283,7 +283,8 @@ void Chip8::emulate_cycle() {
           break;
         case 0x55:
           // LD {I}, Vx: Store registers V0 through Vx in memory location
-          LOG("LD {I}, V" << X);
+          LOG("LD {I}, "
+              << "Store Regs V0 through V" << X);
           // starting at I
           for (int i = 0; i <= X; ++i) Memory[I + i] = V[i];
 
@@ -292,9 +293,9 @@ void Chip8::emulate_cycle() {
           break;
         case 0x65:
           // LD Vx, {I}: Read registers V0 through Vx from memory starting at
-          LOG("LD V" << X << ", {I}");
+          LOG("LD Read Regs V0 through V" << X << ", {I}");
           // location I
-          for (int i = 0; i < X; ++i) V[i] = Memory[I + i];
+          for (int i = 0; i <= X; ++i) V[i] = Memory[I + i];
 
           // Needed??
           // I += X + 1;
