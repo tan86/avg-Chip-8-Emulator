@@ -25,11 +25,12 @@ constexpr std::array<uint8_t, 80> font_set{
 
 class Chip8 {
  public:
+  // TODO(tan): Create functions for Display and Key array. don't keep them public
   bool                      drawFlag = false;
   std::array<uint8_t, 2048> Display{};
+  std::array<uint8_t, 16>   Key{};
 
   void init_or_reset();
-  void dump();
   void load_rom(const char* filename);
   void emulate_cycle();
 
@@ -43,7 +44,6 @@ class Chip8 {
   uint16_t OC{};  // Opcode
 
   std::array<uint8_t, 16>   V{};  // General Purpose Registers
-  std::array<uint8_t, 16>   Key{};
   std::array<uint8_t, 4096> Memory{};
 
   std::array<uint16_t, 16> Stack{};

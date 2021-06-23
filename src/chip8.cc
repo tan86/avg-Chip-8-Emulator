@@ -188,6 +188,11 @@ void Chip8::emulate_cycle() {
       I = NNN;
       PC += 2;
       break;
+    case 0xB000:
+      // JP V0, addr: Jump to location nnn + V0
+      LOG("JP V0 + " << NNN);
+      PC = NNN + V[0x0];
+      break;
     case 0xC000:
       // RND Vx, byte: Set Vx = random byte AND nn
       LOG("RND V" << X << ", " << NN);
@@ -228,6 +233,22 @@ void Chip8::emulate_cycle() {
       drawFlag = true;
       PC += 2;
       break;
+    case 0xE000:
+      switch (NN) {
+        case 0x9E:
+          // SKP Vx: Skip next instruction if key with the value of Vx is
+          LOG("SKP V" << X);
+          // pressed
+          PC += (Key[V[X]]) ? 4 : 2;
+          break;
+        case 0xA1:
+          // SKNP Vx: Skip next instruction if key with the value of Vx is NOT
+          LOG("SKNP V" << X);
+          // pressed
+          PC += (!Key[V[X]]) ? 4 : 2;
+          break;
+      }
+      break;
     case 0xF000:
       switch (NN) {
         case 0x07:
@@ -238,19 +259,12 @@ void Chip8::emulate_cycle() {
         case 0x0A:
           // LD Vx, K: Wait for a key press, store value of the key in Vx
           LOG("LD V" << X << "K: Wait for a key press");
-          {
-            int  i          = 0;
-            bool notPressed = true;
-            while (notPressed) {
-              for (const auto a : Key) {
-                if (a) {
-                  V[X]       = i;
-                  notPressed = false;
-                }
-                ++i;
-              }
+          for (uint8_t i = 0; i < 16; ++i) {
+            if (Key[i] == 1) {
+              V[X] = i;
             }
           }
+          PC -= 2;
           break;
         case 0x15:
           // LD DT, Vx: Set Delay Timer = Vx
@@ -286,7 +300,7 @@ void Chip8::emulate_cycle() {
           LOG("LD {I}, "
               << "Store Regs V0 through V" << X);
           // starting at I
-          for (int i = 0; i <= X; ++i) Memory[I + i] = V[i];
+          for (uint8_t i = 0; i <= X; ++i) Memory[I + i] = V[i];
 
           // Needed??
           // I += X + 1;
@@ -295,7 +309,7 @@ void Chip8::emulate_cycle() {
           // LD Vx, {I}: Read registers V0 through Vx from memory starting at
           LOG("LD Read Regs V0 through V" << X << ", {I}");
           // location I
-          for (int i = 0; i <= X; ++i) V[i] = Memory[I + i];
+          for (uint8_t i = 0; i <= X; ++i) V[i] = Memory[I + i];
 
           // Needed??
           // I += X + 1;
@@ -307,5 +321,11 @@ void Chip8::emulate_cycle() {
       UNKNOWN_INS;
       break;
   }
-  // LOG("PC: " << PC);
+  // Tick
+  if (DT > 0) {
+    --DT;
+  }
+  if (ST > 0) {
+    --ST;
+  }
 }
