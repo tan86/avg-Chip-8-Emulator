@@ -35,7 +35,6 @@ int main(int argc, char* argv[]) {
   // Chip8
   c8.init_or_reset();
   c8.load_rom(argv[1]);
-  // uint8_t* pdsp = &c8.Display[0];
 
   while (isRunning) {
     while (SDL_PollEvent(&event) != 0) {

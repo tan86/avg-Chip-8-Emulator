@@ -1,11 +1,18 @@
 #include "chip8.hh"
 
+#include <ctime>
 #include <fstream>
 #include <iostream>
 
 #define LOG(x) std::cerr << x << "\n"
 #define UNKNOWN_INS \
   std::cerr << "Unknown Instruction: " << std::hex << OC << "\n"
+
+#define NNN (OC & 0x0FFF)
+#define NN  (OC & 0x00FF)
+#define N   (OC & 0x000F)
+#define X   ((OC & 0x0F00) >> 8)
+#define Y   ((OC & 0x00F0) >> 4)
 
 void Chip8::init_or_reset() {
   DT = 0;
@@ -25,7 +32,7 @@ void Chip8::init_or_reset() {
   std::copy(font_set.begin(), font_set.end(), Memory.begin());
 
   // use current time as seed
-  // std::srand(std::time(nullptr));
+  std::srand(std::time(nullptr));
 }
 
 // Temp use of fstream.
@@ -53,13 +60,6 @@ void Chip8::emulate_cycle() {
   // Fetch Opcode
   OC = Memory[PC] << 8 | Memory[PC + 1];
 
-  const auto NNN = (OC & 0x0FFF);
-  const auto NN  = (OC & 0x00FF);
-  const auto N   = (OC & 0x000F);
-
-  const auto X = ((OC & 0x0F00) >> 8);
-  const auto Y = ((OC & 0x00F0) >> 4);
-
   // Decode & Execute
   switch (OC & 0xF000) {
     case 0x0000:
@@ -74,7 +74,7 @@ void Chip8::emulate_cycle() {
         case 0x00EE:
           // RET: Return from a subroutine
           LOG("RET");
-          PC = Stack[--SP];
+          PC = Stack[SP--];
           break;
         default:
           UNKNOWN_INS;
@@ -86,16 +86,112 @@ void Chip8::emulate_cycle() {
       LOG("JP " << NNN);
       PC = NNN;
       break;
+    case 0x2000:
+      // CALL addr: Call subroutine at nnn
+      LOG("CALL " << NNN);
+      Stack[++SP] = PC + 2;
+      PC          = NNN;
+      break;
+    case 0x3000:
+      // SE Vx, byte: Skip next instruction if Vx = nn
+      LOG("SE V" << X << ", " << NN);
+      PC += (V[X] == NN) ? 4 : 2;
+      break;
+    case 0x4000:
+      // SNE Vx, byte: Skip next instruction if Vx != nn
+      LOG("SNE V" << X << ", " << NN);
+      PC += (V[X] != NN) ? 4 : 2;
+      break;
+    case 0x5000:
+      // SE Vx, Vy: Skip next instruction if Vx = Vy
+      LOG("SE V" << X << ", V" << Y);
+      PC += (V[X] == V[Y]) ? 4 : 2;
+      break;
     case 0x6000:
       // LD Vx, byte: Set Vx = nn
       LOG("LD V" << X << ", " << NN);
       V[X] = NN;
       PC += 2;
       break;
+    case 0x7000:
+      // ADD Vx, byte: Set Vx = Vx + nn
+      LOG("ADD V" << X << ", " << NN);
+      V[X] += NN;
+      PC += 2;
+      break;
+    case 0x8000:
+      switch (N) {
+        case 0x0:
+          // LD Vx, Vy: Set Vx = Vy
+          LOG("LD V" << X << ", V" << Y);
+          V[X] = V[Y];
+          break;
+        case 0x1:
+          // OR Vx, Vy: Set Vx = Vx OR Vy
+          LOG("OR V" << X << ", V" << Y);
+          V[X] |= V[Y];
+          break;
+        case 0x2:
+          // AND Vx, Vy: Set Vx = Vx AND Vy
+          LOG("AND V" << X << ", V" << Y);
+          V[X] &= V[Y];
+          break;
+        case 0x3:
+          // XOR Vx, Vy: Set Vx = Vx XOR Vy
+          LOG("XOR V" << X << ", V" << Y);
+          V[X] ^= V[Y];
+          break;
+        case 0x4:
+          // ADD Vx, Vy: Set Vx = Vx + Vy, VF = carry
+          LOG("ADD V" << X << ", V" << Y << " With Carry");
+          V[0xF] = (V[X] + V[Y]) > 255 ? 1 : 0;
+          V[X] += V[Y];
+          break;
+        case 0x5:
+          // SUB Vx, Vy: Set Vx = Vx - Vy, VF = NOT Borrow
+          LOG("SUB V" << X << ", V" << Y << " With Borrow");
+          V[0xF] = V[X] > V[Y];
+          V[X] -= V[Y];
+          break;
+        case 0x6:
+          // SHR Vx {, Vy}: Set Vx = SHR 1
+          LOG("SHR V" << X << ", V" << Y);
+          V[0xF] = V[X] & 0x1;
+          V[X] >>= 1;
+          break;
+        case 0x7:
+          // SUBN Vx, Vy: Set Vx = Vy - Vx, Set VF = NOT Borrow
+          LOG("SUBN V" << X << ", V" << Y);
+          V[0xF] = V[Y] > V[X];
+          V[X]   = V[Y] - V[X];
+          break;
+        case 0xE:
+          // SHL Vx {, Vy}: Set Vx = Vx SHL 1
+          LOG("SHL V" << X << ", V" << Y);
+          V[0xF] = V[X] >> 7;
+          V[X] <<= 1;
+          break;
+        default:
+          LOG("Unknown Instruction: " << OC);
+          break;
+      }
+      PC += 2;
+      break;
+    case 0x9000:
+      // SNE Vx, Vy: Skip next instruction if Vx != Vy
+      LOG("SNE V" << X << ", V" << Y);
+      PC += (V[X] != V[Y]) ? 4 : 2;
+      break;
     case 0xA000:
       // LD I, addr: Set I = nnn
       LOG("LD I, " << NNN);
       I = NNN;
+      PC += 2;
+      break;
+    case 0xC000:
+      // RND Vx, byte: Set Vx = random byte AND nn
+      LOG("RND V" << X << ", " << NN);
+      V[X] = (rand() % 256) & NN;
       PC += 2;
       break;
     case 0xD000:
@@ -112,7 +208,7 @@ void Chip8::emulate_cycle() {
           uint8_t spriteByte = Memory[I + row];
 
           for (uint8_t col = 0; col < 8; ++col) {
-            uint8_t spritePixel = (spriteByte >> col) & 0x1;
+            uint8_t spritePixel = spriteByte & (1 << (7 - col));
 
             uint8_t* pixel = &Display[((yPos + row) * 64) + (xPos + col)];
 
@@ -130,6 +226,80 @@ void Chip8::emulate_cycle() {
         }
       }
       drawFlag = true;
+      PC += 2;
+      break;
+    case 0xF000:
+      switch (NN) {
+        case 0x07:
+          // LD Vx, DT: Set Vx = Delay Timer value
+          LOG("LD V" << X << ", DT: " << DT);
+          V[X] = DT;
+          break;
+        case 0x0A:
+          // LD Vx, K: Wait for a key press, store value of the key in Vx
+          LOG("LD V" << X << "K: Wait for a key press");
+          {
+            int  i          = 0;
+            bool notPressed = true;
+            while (notPressed) {
+              for (const auto a : Key) {
+                if (a) {
+                  V[X]       = i;
+                  notPressed = false;
+                }
+                ++i;
+              }
+            }
+          }
+          break;
+        case 0x15:
+          // LD DT, Vx: Set Delay Timer = Vx
+          LOG("LD DT: " << DT << ", V" << X);
+          DT = V[X];
+          break;
+        case 0x18:
+          // LD ST, Vx: Set Sound Timer = Vx
+          LOG("LD ST: " << ST << ", V" << X);
+          ST = V[X];
+          break;
+        case 0x1E:
+          // ADD I, Vx: Set I = I + Vx
+          LOG("ADD I, V" << X);
+          // Set Flag needed??
+          I += V[X];
+          break;
+        case 0x29:
+          // LD F, Vx: Set I = location of sprite for digit Vx
+          LOG("LD F, V" << X);
+          I = 5 * V[X];
+          break;
+        case 0x33:
+          // LD B, Vx: Store BCD representation of Vx in memory locations I, I
+          LOG("LD B, V" << X << "Store BCD");
+          // + 1, and I + 2
+          Memory[I]     = (V[X] % 1000) / 100;
+          Memory[I + 1] = (V[X] % 100) / 10;
+          Memory[I + 2] = V[X] % 10;
+          break;
+        case 0x55:
+          // LD {I}, Vx: Store registers V0 through Vx in memory location
+          LOG("LD {I}, V" << X);
+          // starting at I
+          for (int i = 0; i <= X; ++i) Memory[I + i] = V[i];
+
+          // Needed??
+          // I += X + 1;
+          break;
+        case 0x65:
+          // LD Vx, {I}: Read registers V0 through Vx from memory starting at
+          LOG("LD V" << X << ", {I}");
+          // location I
+          for (int i = 0; i < X; ++i) V[i] = Memory[I + i];
+
+          // Needed??
+          // I += X + 1;
+          break;
+      }
       PC += 2;
       break;
     default:

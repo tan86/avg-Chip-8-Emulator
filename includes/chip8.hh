@@ -25,7 +25,7 @@ constexpr std::array<uint8_t, 80> font_set{
 
 class Chip8 {
  public:
-  bool drawFlag = false;
+  bool                      drawFlag = false;
   std::array<uint8_t, 2048> Display{};
 
   void init_or_reset();
