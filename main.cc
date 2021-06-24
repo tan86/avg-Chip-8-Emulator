@@ -49,9 +49,9 @@ int main(int argc, char* argv[]) {
       for (uint8_t i = 0; i < 16; ++i) {
         if (event.key.keysym.sym == keyMap[i]) {
           if (event.type == SDL_KEYDOWN) {
-            c8.Key[i] = 1;
+            c8.setKey(i, 1);
           } else {
-            c8.Key[i] = 0;
+            c8.setKey(i, 0);
           }
         }
       }

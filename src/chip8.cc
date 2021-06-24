@@ -8,11 +8,9 @@
 #define UNKNOWN_INS \
   std::cerr << "Unknown Instruction: " << std::hex << OC << "\n"
 
-#define NNN (OC & 0x0FFF)
-#define NN  (OC & 0x00FF)
-#define N   (OC & 0x000F)
-#define X   ((OC & 0x0F00) >> 8)
-#define Y   ((OC & 0x00F0) >> 4)
+void Chip8::setKey(const uint8_t index, const uint8_t value) {
+  Key[index] = value;
+}
 
 void Chip8::init_or_reset() {
   DT = 0;
@@ -59,6 +57,12 @@ void Chip8::load_rom(const char* filename) {
 void Chip8::emulate_cycle() {
   // Fetch Opcode
   OC = Memory[PC] << 8 | Memory[PC + 1];
+
+  const auto NNN = (OC & 0x0FFF);
+  const auto NN  = (OC & 0x00FF);
+  const auto N   = (OC & 0x000F);
+  const auto X   = ((OC & 0x0F00) >> 8);
+  const auto Y   = ((OC & 0x00F0) >> 4);
 
   // Decode & Execute
   switch (OC & 0xF000) {
@@ -258,7 +262,7 @@ void Chip8::emulate_cycle() {
           break;
         case 0x0A:
           // LD Vx, K: Wait for a key press, store value of the key in Vx
-          LOG("LD V" << X << "K: Wait for a key press");
+          LOG("LD V" << X << " K: Wait for a key press");
           for (uint8_t i = 0; i < 16; ++i) {
             if (Key[i] == 1) {
               V[X] = i;
