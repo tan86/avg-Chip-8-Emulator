@@ -4,9 +4,14 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef Debug
 #define LOG(x) std::cerr << x << "\n"
 #define UNKNOWN_INS \
     std::cerr << "Unknown Instruction: " << std::hex << OC << "\n"
+#else
+#define LOG(x)
+#define UNKNOWN_INS
+#endif
 
 void Chip8::setKey(const uint8_t index, const uint8_t value) {
     Key[index] = value;
