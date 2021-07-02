@@ -17,4 +17,4 @@ find_package(SDL2 REQUIRED)
 
 add_executable(${PROJECT_NAME} main.cc src/chip8.cc)
 target_include_directories(${PROJECT_NAME} PRIVATE includes)
-target_link_libraries(${PROJECT_NAME} SDL2::SDL2main SDL2::SDL2)
+target_link_libraries(${PROJECT_NAME} SDL2::SDL2)

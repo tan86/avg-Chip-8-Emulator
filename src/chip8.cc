@@ -38,11 +38,11 @@ void Chip8::init_or_reset() {
     };
 
     DT = 0;
-    ST = 0;
-    SP = 0;
-    PC = 0x200;
     I  = 0;
     OC = 0;
+    PC = 0x200;
+    SP = 0;
+    ST = 0;
 
     V.fill(0);
     Key.fill(0);
@@ -200,7 +200,7 @@ void Chip8::emulate_cycle() {
                     V[X] <<= 1;
                     break;
                 default:
-                    LOG("Unknown Instruction: " << OC);
+                    UNKNOWN_INS;
                     break;
             }
             PC += 2;
