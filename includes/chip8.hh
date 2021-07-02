@@ -19,12 +19,12 @@ class Chip8 {
 
    private:
     uint8_t DT{};  // Delay Timer
-    uint8_t ST{};  // Sound Timer
     uint8_t SP{};  // Stack Pointer
+    uint8_t ST{};  // Sound Timer
 
-    uint16_t PC{};  // Program Counter
     uint16_t I{};
     uint16_t OC{};  // Opcode
+    uint16_t PC{};  // Program Counter
 
     std::array<uint8_t, 16>   V{};  // General Purpose Registers
     std::array<uint8_t, 16>   Key{};

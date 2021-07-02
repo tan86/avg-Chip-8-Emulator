@@ -228,8 +228,8 @@ void Chip8::emulate_cycle() {
             PC += 2;
             break;
         case 0xD000:
-            /* DRW x, y, nibble: Display n-byte sprite starting at memory
-               location I at(Vx, Vy), Set VF = collision*/
+            // DRW x, y, nibble: Display n-byte sprite starting at memory
+            // location I at(Vx, Vy), Set VF = collision
             LOG("DRW " << X << ", " << Y << ", " << N);
             {
                 uint8_t xPos = V[X] % 64;
@@ -266,16 +266,14 @@ void Chip8::emulate_cycle() {
             switch (NN) {
                 case 0x9E:
                     // SKP Vx: Skip next instruction if key with the value of Vx
-                    // is
+                    // is pressed
                     LOG("SKP V" << X);
-                    // pressed
                     PC += (Key[V[X]]) ? 4 : 2;
                     break;
                 case 0xA1:
                     // SKNP Vx: Skip next instruction if key with the value of
-                    // Vx is NOT
+                    // Vx is NOT pressed
                     LOG("SKNP V" << X);
-                    // pressed
                     PC += (!Key[V[X]]) ? 4 : 2;
                     break;
             }
@@ -311,7 +309,6 @@ void Chip8::emulate_cycle() {
                 case 0x1E:
                     // ADD I, Vx: Set I = I + Vx
                     LOG("ADD I, V" << X);
-                    // Set Flag needed??
                     I += V[X];
                     break;
                 case 0x29:
@@ -321,33 +318,24 @@ void Chip8::emulate_cycle() {
                     break;
                 case 0x33:
                     // LD B, Vx: Store BCD representation of Vx in memory
-                    // locations I, I
+                    // locations I, I + 1, and I + 2
                     LOG("LD B, V" << X << "Store BCD");
-                    // + 1, and I + 2
                     Memory[I]     = (V[X] % 1000) / 100;
                     Memory[I + 1] = (V[X] % 100) / 10;
                     Memory[I + 2] = V[X] % 10;
                     break;
                 case 0x55:
                     // LD {I}, Vx: Store registers V0 through Vx in memory
-                    // location
+                    // starting at location I
                     LOG("LD {I}, "
                         << "Store Regs V0 through V" << X);
-                    // starting at I
                     for (uint8_t i = 0; i <= X; ++i) Memory[I + i] = V[i];
-
-                    // Needed??
-                    // I += X + 1;
                     break;
                 case 0x65:
                     // LD Vx, {I}: Read registers V0 through Vx from memory
-                    // starting at
+                    // starting at location I
                     LOG("LD Read Regs V0 through V" << X << ", {I}");
-                    // location I
                     for (uint8_t i = 0; i <= X; ++i) V[i] = Memory[I + i];
-
-                    // Needed??
-                    // I += X + 1;
                     break;
             }
             PC += 2;
