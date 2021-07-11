@@ -10,6 +10,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 find_package(SDL2 REQUIRED)
 
-add_executable(${PROJECT_NAME} main.cc src/chip8.cc)
-target_include_directories(${PROJECT_NAME} PRIVATE includes)
+add_executable(${PROJECT_NAME} main.cc chip8.cc)
 target_link_libraries(${PROJECT_NAME} SDL2::SDL2)

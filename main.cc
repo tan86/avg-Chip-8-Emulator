@@ -42,11 +42,11 @@ int main(int argc, char* argv[]) {
                 isRunning = false;
             }
             for (uint8_t i = 0; i != 16; ++i) {
-                if (event.key.keysym.sym == keyMap[i]) {
+                if (event.key.keysym.sym == keyMap.at(i)) {
                     if (event.type == SDL_KEYDOWN) {
-                        c8.Key[i] = 1;
+                        c8.Key.at(i) = 1;
                     } else {
-                        c8.Key[i] = 0;
+                        c8.Key.at(i) = 0;
                     }
                 }
             }
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
         c8.emulate_cycle();
         if (c8.drawFlag) {
-            SDL_UpdateTexture(pscrTxr, nullptr, (void*)&c8.Display, 64 * sizeof(uint8_t));
+            SDL_UpdateTexture(pscrTxr, nullptr, static_cast<void*>(&c8.Display), 64 * sizeof(uint8_t));
             SDL_RenderClear(pren);
             SDL_RenderCopy(pren, pscrTxr, nullptr, nullptr);
             SDL_RenderPresent(pren);
