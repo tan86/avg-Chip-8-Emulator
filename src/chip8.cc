@@ -5,17 +5,12 @@
 #include <iostream>
 
 #ifdef Debug
-#define LOG(x) std::cerr << x << "\n"
-#define UNKNOWN_INS \
-    std::cerr << "Unknown Instruction: " << std::hex << OC << "\n"
+#define LOG(x)      std::cerr << x << "\n"
+#define UNKNOWN_INS std::cerr << "Unknown Instruction: " << std::hex << OC << "\n"
 #else
 #define LOG(x)
 #define UNKNOWN_INS
 #endif
-
-void Chip8::setKey(const uint8_t index, const uint8_t value) {
-    Key[index] = value;
-}
 
 void Chip8::init_or_reset() {
     constexpr std::array<uint8_t, 80> font_set{
@@ -70,7 +65,7 @@ void Chip8::load_rom(const char* filename) {
         rom.read(buffer, ssize);
         rom.close();
 
-        for (auto i = 0; i < ssize; ++i) {
+        for (auto i = 0; i != ssize; ++i) {
             Memory[0x200 + i] = buffer[i];
         }
 
@@ -237,14 +232,13 @@ void Chip8::emulate_cycle() {
 
                 // Collision Flag = 0
                 V[0xF] = 0;
-                for (uint8_t row = 0; row < N; ++row) {
+                for (uint8_t row = 0; row != N; ++row) {
                     uint8_t spriteByte = Memory[I + row];
 
-                    for (uint8_t col = 0; col < 8; ++col) {
+                    for (uint8_t col = 0; col != 8; ++col) {
                         uint8_t spritePixel = (spriteByte >> (7 - col)) & 0x1;
 
-                        uint8_t* pixel =
-                            &Display[((yPos + row) * 64) + (xPos + col)];
+                        uint8_t* pixel = &Display[((yPos + row) * 64) + (xPos + col)];
 
                         if (spritePixel == 1 && *pixel == 1) {
                             V[0xF] = 1;
@@ -276,6 +270,9 @@ void Chip8::emulate_cycle() {
                     LOG("SKNP V" << X);
                     PC += (!Key[V[X]]) ? 4 : 2;
                     break;
+                default:
+                    UNKNOWN_INS;
+                    break;
             }
             break;
         case 0xF000:
@@ -289,7 +286,7 @@ void Chip8::emulate_cycle() {
                     // LD Vx, K: Wait for a key press, store value of the key in
                     // Vx
                     LOG("LD V" << X << " K: Wait for a key press");
-                    for (uint8_t i = 0; i < 16; ++i) {
+                    for (uint8_t i = 0; i != 16; ++i) {
                         if (Key[i] == 1) {
                             V[X] = i;
                         }
@@ -336,6 +333,9 @@ void Chip8::emulate_cycle() {
                     // starting at location I
                     LOG("LD Read Regs V0 through V" << X << ", {I}");
                     for (uint8_t i = 0; i <= X; ++i) V[i] = Memory[I + i];
+                    break;
+                default:
+                    UNKNOWN_INS;
                     break;
             }
             PC += 2;
