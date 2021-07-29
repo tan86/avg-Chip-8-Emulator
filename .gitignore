@@ -1,5 +1,2 @@
 C8E
 .cache
-build/*
-tests/*
-compile_commands.json

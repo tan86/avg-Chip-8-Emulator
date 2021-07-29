@@ -1,0 +1,3 @@
+#!/bin/sh
+rm -f C8E
+gcc -Wall -Wextra -o C8E main.c -lSDL2
