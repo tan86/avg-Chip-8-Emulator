@@ -53,12 +53,10 @@ int main(int argc, char* argv[]) {
         }
 
         c8.emulate_cycle();
-        if (c8.drawFlag) {
-            SDL_UpdateTexture(pscrTxr, nullptr, static_cast<void*>(&c8.Display), 64 * sizeof(uint8_t));
-            SDL_RenderClear(pren);
-            SDL_RenderCopy(pren, pscrTxr, nullptr, nullptr);
-            SDL_RenderPresent(pren);
-        }
+		SDL_UpdateTexture(pscrTxr, nullptr, static_cast<void*>(&c8.Display), 64 * sizeof(uint8_t));
+		SDL_RenderClear(pren);
+		SDL_RenderCopy(pren, pscrTxr, nullptr, nullptr);
+		SDL_RenderPresent(pren);
     }
 
     SDL_DestroyTexture(pscrTxr);

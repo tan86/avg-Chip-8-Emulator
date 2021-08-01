@@ -5,8 +5,6 @@
 #include <cstdint>
 
 struct Chip8 {
-    bool drawFlag = false;
-
     uint8_t DT{};  // Delay Timer
     uint8_t SP{};  // Stack Pointer
     uint8_t ST{};  // Sound Timer

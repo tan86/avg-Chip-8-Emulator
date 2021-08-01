@@ -92,7 +92,6 @@ void Chip8::emulate_cycle() {
                     LOG("CLS");
                     Display.fill(0);
                     PC += 2;
-                    drawFlag = true;
                     break;
                 case 0x00EE:
                     // RET: Return from a subroutine
@@ -230,7 +229,6 @@ void Chip8::emulate_cycle() {
                 uint8_t xPos = V[X] % 64;
                 uint8_t yPos = V[Y] % 32;
 
-                // Collision Flag = 0
                 V[0xF] = 0;
                 for (uint8_t row = 0; row != N; ++row) {
                     uint8_t spriteByte = Memory[I + row];
@@ -245,15 +243,9 @@ void Chip8::emulate_cycle() {
                         }
 
                         *pixel ^= spritePixel;
-                        if (*pixel == 1) {
-                            *pixel = 0xFF;
-                        } else {
-                            *pixel = 0x00;
-                        }
                     }
                 }
             }
-            drawFlag = true;
             PC += 2;
             break;
         case 0xE000:
