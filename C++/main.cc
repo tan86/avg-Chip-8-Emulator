@@ -14,9 +14,9 @@ int main(int argc, char *argv[]) {
 	constexpr uint8_t  pixPerRow = 64;
 	constexpr uint8_t  pixPerCol = 32;
 
-	SDL_Window *  pwin    = nullptr;
-	SDL_Renderer *pren    = nullptr;
-	SDL_Texture * pscrTxr = nullptr;
+	SDL_Window*  pwin    = nullptr;
+	SDL_Renderer* pren   = nullptr;
+	SDL_Texture* pscrTxr = nullptr;
 	SDL_Event     event;
 
 	constexpr std::array<uint8_t, 16> keyMap{
